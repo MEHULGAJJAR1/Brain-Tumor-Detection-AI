@@ -1,0 +1,17 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+instance/*
+!instance/.gitkeep
+models/*.pt
+models/*.pth
+data/raw/
+data/processed/
+*.log
+.DS_Store
+Thumbs.db

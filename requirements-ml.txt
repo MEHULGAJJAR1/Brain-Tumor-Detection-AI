@@ -1,0 +1,8 @@
+# Optional training and inference dependencies. Choose the PyTorch wheel appropriate
+# for your CPU/CUDA platform if the default PyPI wheel is not suitable.
+-r requirements.txt
+numpy>=1.24,<3.0
+scipy>=1.10,<2.0
+scikit-learn>=1.3,<2.0
+torch>=2.2,<3.0
+torchvision>=0.17,<1.0

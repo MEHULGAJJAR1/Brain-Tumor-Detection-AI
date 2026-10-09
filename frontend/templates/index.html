@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10293d">
+  <meta name="description" content="A local research workbench for brain MRI image review and optional ResNet50 inference.">
+  <title>NeuroVista — Brain MRI Workbench</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/brain-mark.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body data-max-upload-mb="{{ max_upload_mb }}">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="NeuroVista home">
+        <span class="brand-mark"><img src="{{ url_for('static', filename='images/brain-mark.svg') }}" alt=""></span>
+        <span class="brand-copy"><strong>NeuroVista</strong><small>MRI WORKBENCH</small></span>
+      </a>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <button class="nav-link is-active" type="button" data-section="overview" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"></rect></svg>
+          <span>Overview</span>
+        </button>
+        <button class="nav-link" type="button" data-section="new-analysis">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"></path><circle cx="12" cy="12" r="9"></circle></svg>
+          <span>New review</span><span class="nav-count" aria-hidden="true">01</span>
+        </button>
+        <button class="nav-link" type="button" data-section="history">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16M4 12h16M4 18.5h9"></path><circle cx="18" cy="18" r="3"></circle></svg>
+          <span>Scan history</span><span class="nav-counter" id="nav-scan-count">0</span>
+        </button>
+        <button class="nav-link" type="button" data-section="model">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z"></path><path d="m4.4 8.2 7.6 4.4 7.6-4.4M12 12.6v7.6"></path></svg>
+          <span>Model & method</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-local-card">
+        <div class="local-card-top"><span class="local-lock"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"></path></svg></span><span>LOCAL WORKSPACE</span></div>
+        <p>Uploaded images stay in this app's local storage until you delete them.</p>
+      </div>
+      <div class="sidebar-foot"><span class="foot-dot"></span> Research use only <span class="foot-version">v1.0</span></div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <div class="breadcrumbs"><span>Research workspace</span><span class="crumb-slash">/</span><strong id="page-crumb">Overview</strong></div>
+          <div class="topbar-caption">Local session <span class="caption-separator">·</span> <span id="local-date">—</span></div>
+        </div>
+        <div class="topbar-right">
+          <div class="model-pill" id="top-model-pill" aria-live="polite"><span class="status-dot"></span><span id="top-model-label">Checking model</span></div>
+          <div class="user-mark" aria-label="Local workspace">NV</div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="page-section" id="overview" aria-labelledby="page-title">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow"><span class="eyebrow-mark"></span> NEUROIMAGING <span class="eyebrow-divider">/</span> RESEARCH REVIEW</p>
+              <h1 id="page-title">Brain MRI workbench<span class="heading-period">.</span></h1>
+              <p class="page-intro-copy">A private, local workspace to inspect a single MRI image and, when configured, run a research classifier.</p>
+            </div>
+            <div class="heading-badge"><span class="badge-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8.2 0 4.1 3.2 7.3 7.3 7.3h1.4c.9 0 1.5-.7 1.5-1.5 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.8.6-1.4 1.4-1.4h1.5c2.5 0 4.4-1.9 4.4-4.4 0-3.1-3.6-5.9-8-5.9Z"></path><path d="M7.7 11.2h.1m3-3.7h.1m4.1 1.3h.1"></path></svg></span><span><strong>3-class research scope</strong><small>Glioma · Meningioma · Pituitary</small></span></div>
+          </div>
+
+          <div class="metrics-grid" aria-label="Workspace summary">
+            <article class="metric-card metric-primary">
+              <div class="metric-head"><span class="metric-label">Scans in workspace</span><span class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 9h8M8 12h8M8 15h4"></path></svg></span></div>
+              <div class="metric-value" id="metric-total">—</div>
+              <div class="metric-foot">Saved locally on this device</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-head"><span class="metric-label">Model outputs</span><span class="metric-icon mint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path><circle cx="12" cy="12" r="9"></circle></svg></span></div>
+              <div class="metric-value" id="metric-completed">—</div>
+              <div class="metric-foot">Recorded by a configured model</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-head"><span class="metric-label">Model status</span><span class="metric-icon amber"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3l9-16.5Z"></path><path d="M12 9v4.5m0 3h.01"></path></svg></span></div>
+              <div class="metric-value metric-status-value" id="metric-model-state">Checking</div>
+              <div class="metric-foot" id="metric-model-caption">Checking local checkpoint</div>
+            </article>
+          </div>
+
+          <div class="section-intro-row" id="new-analysis">
+            <div><p class="eyebrow eyebrow-muted">START A REVIEW</p><h2>Bring an image into your workspace</h2></div>
+            <span class="section-index">01 <i>/</i> 03</span>
+          </div>
+
+          <div class="workbench-grid">
+            <article class="surface upload-surface">
+              <div class="surface-heading">
+                <div class="surface-heading-left"><span class="step-number">01</span><div><h3>Upload MRI image</h3><p>One 2D image per review</p></div></div>
+                <span class="privacy-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg> Local only</span>
+              </div>
+
+              <form id="upload-form" novalidate>
+                <label class="drop-zone" id="drop-zone" for="scan-file">
+                  <input id="scan-file" name="file" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-describedby="upload-help">
+                  <span class="drop-icon-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"></path><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"></path></svg></span>
+                  <span class="drop-copy"><strong>Drop an image here or <em>browse files</em></strong><small id="upload-help">JPEG, PNG or WebP <span>·</span> Up to {{ max_upload_mb }} MB</small></span>
+                  <span class="drop-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"></path></svg></span>
+                </label>
+
+                <div class="selected-file" id="selected-file" hidden>
+                  <div class="selected-thumb"><img id="selected-preview" alt="Selected MRI image preview"></div>
+                  <div class="selected-info"><strong id="selected-name">image.png</strong><span id="selected-meta">—</span></div>
+                  <button class="icon-button remove-file" id="remove-file" type="button" aria-label="Remove selected file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"></path></svg></button>
+                </div>
+
+                <div class="upload-note"><span class="note-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg></span><span>Use de-identified material only. Avoid patient names or burned-in identifiers in images or filenames.</span></div>
+                <button class="button button-primary upload-submit" id="upload-button" type="submit" disabled>
+                  <span class="button-label">Save scan &amp; check model</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg>
+                </button>
+                <div class="operation-feedback" id="upload-feedback" role="status" aria-live="polite" hidden></div>
+              </form>
+            </article>
+
+            <aside class="surface workflow-surface">
+              <div class="workflow-topline"><span class="workflow-kicker">REVIEW FLOW</span><span class="workflow-orbit"><span></span></span></div>
+              <div class="scan-visual" aria-hidden="true">
+                <div class="scan-grid"></div>
+                <svg class="scan-brain" viewBox="0 0 220 150" fill="none">
+                  <path d="M108 20c-15-13-39-8-47 8-18-2-32 13-29 31-12 10-12 29 1 39-4 18 10 33 27 33 8 14 28 16 41 5 14 12 35 8 43-7 19 3 34-13 29-31 12-11 10-31-4-40 3-18-12-31-30-30-5-13-19-19-31-8Z" stroke="currentColor" stroke-width="2.2"/>
+                  <path d="M109 21c-7 13-8 23-3 34 4 10 1 18-5 25-9 10-7 20 1 29 6 7 7 16 4 27M60 43c12 1 20 8 22 19m-43 17c13-6 25-4 34 6m-7 39c3-13 12-20 25-22m80-60c-11 0-19 7-22 17m41 28c-12-6-23-3-32 7m21 39c-4-12-13-19-26-20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle cx="109" cy="75" r="20" stroke="currentColor" stroke-width="1" stroke-dasharray="2 5"/>
+                  <circle cx="109" cy="75" r="3" fill="currentColor"/>
+                </svg>
+                <div class="scan-target"></div>
+                <span class="visual-coordinate coord-a">R  ·  24</span><span class="visual-coordinate coord-b">AXIAL / T1</span>
+              </div>
+              <h3>Clear steps. Honest results.</h3>
+              <div class="workflow-steps">
+                <div class="workflow-step"><span class="workflow-step-number">1</span><div><strong>Validate &amp; save</strong><p>Only a supported image is stored; embedded image metadata is stripped.</p></div></div>
+                <div class="workflow-step"><span class="workflow-step-number">2</span><div><strong>Check model availability</strong><p>Inference runs only when a compatible trained checkpoint is installed.</p></div></div>
+                <div class="workflow-step"><span class="workflow-step-number">3</span><div><strong>Review with context</strong><p>Any model output is research-only and requires qualified clinical review.</p></div></div>
+              </div>
+              <button class="text-link" type="button" data-section="model">View model setup <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+            </aside>
+          </div>
+
+          <div class="safety-banner">
+            <span class="safety-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3l9-16.5Z"></path><path d="M12 9v4m0 3h.01"></path></svg></span>
+            <div><strong>Not for diagnosis or treatment decisions.</strong><span>This research workbench does not replace radiology review. A three-class classifier cannot establish that a tumor is present or absent.</span></div>
+            <span class="safety-tag">EDUCATIONAL USE</span>
+          </div>
+        </section>
+
+        <section class="page-section history-section" id="history" aria-labelledby="history-title">
+          <div class="section-intro-row history-intro">
+            <div><p class="eyebrow eyebrow-muted">LOCAL RECORDS</p><h2 id="history-title">Scan history</h2><p class="section-subtitle">Images and model outputs saved in this browser's local workspace.</p></div>
+            <span class="section-index">02 <i>/</i> 03</span>
+          </div>
+          <div class="surface history-surface">
+            <div class="history-toolbar">
+              <label class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m16 16 4 4"></path></svg><input id="history-search" type="search" placeholder="Search by filename" aria-label="Search scan history"></label>
+              <div class="history-actions"><label class="filter-select-label" for="status-filter">Status</label><select id="status-filter" class="filter-select"><option value="all">All scans</option><option value="awaiting_model">Awaiting model</option><option value="completed">Analyzed</option><option value="inference_failed">Inference failed</option></select><button class="icon-button refresh-button" id="refresh-scans" type="button" aria-label="Refresh scan history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"></path><path d="M6.2 9A6.5 6.5 0 0 1 17 6.8L20 12M4 12l3 5.2A6.5 6.5 0 0 0 18 15"></path></svg></button></div>
+            </div>
+            <div class="table-wrap" id="history-table-wrap">
+              <table class="scan-table">
+                <thead><tr><th scope="col">IMAGE</th><th scope="col">ADDED</th><th scope="col">DIMENSIONS</th><th scope="col">STATUS</th><th scope="col">MODEL OUTPUT</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+                <tbody id="scan-table-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="history-empty" hidden>
+              <span class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 9h8M8 13h5"></path></svg></span>
+              <h3 id="empty-title">No scans yet</h3><p id="empty-copy">Your saved images will appear here. Start with a single 2D MRI image.</p>
+              <button class="button button-secondary" type="button" data-section="new-analysis">Add an image <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+            </div>
+            <div class="table-foot"><span id="history-count">0 scans</span><span>Images remain until deleted <span class="foot-separator">·</span> <button type="button" id="manage-storage" class="inline-action">Manage storage</button></span></div>
+          </div>
+        </section>
+
+        <section class="page-section model-section" id="model" aria-labelledby="model-title">
+          <div class="section-intro-row">
+            <div><p class="eyebrow eyebrow-muted">MODEL &amp; METHOD</p><h2 id="model-title">A transparent, optional classifier</h2><p class="section-subtitle">The interface is usable without weights; predictions are never simulated.</p></div>
+            <span class="section-index">03 <i>/</i> 03</span>
+          </div>
+          <div class="model-grid">
+            <article class="surface model-status-card">
+              <div class="model-card-heading"><div class="model-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z"></path><path d="m4.5 8.2 7.5 4.3 7.5-4.3M12 12.5v7.7"></path></svg></div><div><p class="eyebrow eyebrow-muted">CHECKPOINT STATUS</p><h3 id="model-card-title">Checking local model</h3></div></div>
+              <p class="model-status-copy" id="model-status-copy">Looking for the configured checkpoint and optional inference dependencies.</p>
+              <div class="model-path-line"><span>Expected artifact</span><code id="model-path-display">models/brain_tumor_resnet50.pt</code></div>
+              <div class="model-actions"><button class="button button-secondary" id="copy-setup" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>Copy setup command</button><span id="copy-feedback" class="copy-feedback" role="status" aria-live="polite"></span></div>
+            </article>
+            <article class="surface model-facts-card">
+              <div class="facts-heading"><div><p class="eyebrow eyebrow-muted">REFERENCE ARCHITECTURE</p><h3>ResNet50 transfer learning</h3></div><span class="facts-tag">OPTIONAL</span></div>
+              <div class="architecture-visual" aria-label="Model pipeline: MRI image to ResNet50 to three classes">
+                <div class="arch-node arch-input"><span class="arch-node-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><circle cx="12" cy="12" r="4"></circle><path d="M12 8v8M8 12h8"></path></svg></span><span>2D image</span></div><span class="arch-connector"></span><div class="arch-node arch-core"><span class="arch-resnet">R</span><span>ResNet50</span></div><span class="arch-connector"></span><div class="arch-node arch-output"><span class="class-dots"><i></i><i></i><i></i></span><span>3 classes</span></div>
+              </div>
+              <div class="facts-list"><div><span>Input</span><strong>224 × 224 RGB</strong></div><div><span>Output classes</span><strong>Glioma · Meningioma · Pituitary</strong></div><div><span>Runtime</span><strong>CPU inference supported</strong></div></div>
+            </article>
+          </div>
+          <div class="model-disclosure"><span class="disclosure-mark">i</span><p><strong>Artifact note.</strong> No trained weights or training dataset were included with the supplied files. The 99.3% figure in the reference README has not been independently verified and is not presented as a performance result here. See <code>README.md</code> for dataset setup, training, and limitations.</p></div>
+        </section>
+
+        <footer class="page-footer"><span>NeuroVista MRI Workbench <span class="footer-separator">·</span> Local research software</span><span>Not a medical device <span class="footer-separator">·</span> Do not use for clinical decisions</span></footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="mobile-scrim" id="mobile-scrim" hidden></div>
+  <dialog class="scan-dialog" id="scan-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-header"><div><p class="eyebrow eyebrow-muted">SAVED IMAGE</p><h2 id="dialog-title">Scan details</h2></div><button class="icon-button" type="button" id="close-dialog" aria-label="Close details"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"></path></svg></button></div>
+    <div class="dialog-body" id="dialog-body"></div>
+  </dialog>
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
